@@ -2,6 +2,55 @@ let socket =io();//el io viene del script desde el html
 let chatBox = document.getElementById('chatBox');
 let log =document.getElementById('log');
 let user;
+
+/*MAP*/
+
+let myMap = L.map('myMap').setView([5-38.416097, -63.616672], 5)
+
+L.tileLayer(`https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png`, {
+	maxZoom: 18,
+}).addTo(myMap);
+
+let marker = L.marker([51.5, -0.09]).addTo(myMap)
+
+let iconMarker = L.icon({
+    iconUrl: 'marker.png',
+    iconSize: [60, 60],
+    iconAnchor: [30, 60]
+})
+
+let marker2 = L.marker([51.51, -0.09], { icon: iconMarker }).addTo(myMap)
+
+myMap.doubleClickZoom.disable()
+myMap.on('dblclick', e => {
+  let latLng = myMap.mouseEventToLatLng(e.originalEvent);
+
+  L.marker([latLng.lat, latLng.lng], { icon: iconMarker }).addTo(myMap)
+})
+
+navigator.geolocation.getCurrentPosition(
+  (pos) => {
+    const { coords } = pos
+    const { latitude, longitude } = coords
+    L.marker([latitude, longitude], { icon: iconMarker }).addTo(myMap)
+
+    setTimeout(() => {
+      myMap.panTo(new L.LatLng(latitude, longitude))
+    }, 5000)
+  },
+  (error) => {
+    console.log(error)
+  },
+  {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  })
+
+
+
+
+
 /*ALERT DE IDENTIFICACION */
 Swal.fire({
     title:"Identify",//para que se indentifique el usuario
@@ -20,8 +69,12 @@ chatBox.addEventListener('keyup',evt=>{
     if(evt.key === "Enter"){
         
         if(chatBox.value.trim().length>0){//con trim()anulo los envios vacios 
-            socket.emit('message',{user,message:chatBox.value.trim()})//mando el user y en message el mensage del chatBox
+            let date = new Date().toLocaleTimeString()
+            console.log(date)
+            socket.emit('message',{user,message:chatBox.value.trim(),date})//mando el user y en message el mensage del chatBox
             chatBox.value='';
+            //socket.emit('message',{message:date})
+            
         }
     }
 })
@@ -32,10 +85,11 @@ socket.on('log',data =>{
     
     let messages='';//dejo la variable aca adentro para que se esta borrando cada vez que refresque 
     data.forEach(element => {
-        messages=messages + `${element.user} Dice : ${element.message}</br>`
+        messages=messages + `${element.user} Dice : ${element.message} Hora: ${element.date}</br>`
     });
     log.innerHTML =messages;
 })
+
 
 
 
