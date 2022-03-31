@@ -17,11 +17,8 @@ io.on('connection', socket=>{
         
         log.push(data);
         io.emit('log',log)//io para que sea global para todos incluyendome
-})//recibe el evento message de index del emit
-//socket.on('message',data=>{
-//    hora.push(data)
-//    io.emit('hora',hora)
-//})
+})
+
 
 })// los on son los listerner , estoy diciendo que escuhce por el evento de conexion
 
